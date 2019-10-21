@@ -19,8 +19,8 @@ export async function download(req: Request, res: Response) {
 }
 
 export async function upload(req: Request & { file: file }, res: Response) {
-  console.log('request', req);
   let response = await uploadFile(req.file.originalname, req.file.path);
+  console.log('response', response, req.file.path);
   res.send(response);
   res.end();
 }

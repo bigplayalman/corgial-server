@@ -6,7 +6,7 @@ require('dotenv').config();
 export function getFileLink(filename: string) {
   return new Promise(function (resolve, reject) {
     var options = { keypairId: process.env.CLOUDFRONT_ACCESS_KEY_ID, privateKeyPath: process.env.CLOUDFRONT_PRIVATE_KEY_PATH };
-    var signedUrl = awsCloudFront.getSignedUrl(process.env.CLOUDFRONT_URL + filename, options);
+    var signedUrl = awsCloudFront.getSignedUrl(process.env.CLOUDFRONT_URL + '/' + filename, options);
     resolve(signedUrl);
   });
 }
@@ -14,7 +14,6 @@ export function getFileLink(filename: string) {
 export function uploadFile(filename: string, fileDirectoryPath: string) {
   awsSDK.config.update({ accessKeyId: process.env.S3_ACCESS_KEY_ID, secretAccessKey: process.env.S3_SECRET_ACCESS_KEY });
   const s3 = new awsSDK.S3();
-
   return new Promise(function (resolve, reject) {
     fs.readFile(fileDirectoryPath.toString(), function (err, data) {
       if (err) { reject(err); }
