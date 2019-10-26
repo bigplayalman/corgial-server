@@ -22,8 +22,9 @@ export function uploadFile(filename: string, fileDirectoryPath: string) {
         Key: filename,
         Body: data,
         ACL: 'public-read'
-      }, function (err, data) {
+      }, function (err, _data) {
         if (err) reject(err);
+        fs.unlinkSync(fileDirectoryPath);
         resolve("succesfully uploaded");
       });
     });
