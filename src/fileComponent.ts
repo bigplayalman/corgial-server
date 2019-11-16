@@ -1,6 +1,4 @@
 import awsCloudFront from 'aws-cloudfront-sign';
-import awsSDK from 'aws-sdk';
-import fs from 'fs';
 require('dotenv').config();
 
 export function getFileLink(filename: string) {
