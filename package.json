@@ -14,12 +14,14 @@
   "homepage": "https://github.com/bigplayalman",
   "dependencies": {
     "@types/cors": "^2.8.6",
+    "@types/fluent-ffmpeg": "^2.1.13",
     "@types/multer": "^1.3.10",
-    "@uppy/companion": "^1.5.0",
+    "@uppy/companion": "^1.7.0",
     "cors": "^2.8.5",
     "dotenv": "^8.1.0",
     "express": "4.17.1",
     "express-basic-auth": "1.2.0",
+    "fluent-ffmpeg": "^2.1.2",
     "ts-node-dev": "^1.0.0-pre.40"
   },
   "devDependencies": {

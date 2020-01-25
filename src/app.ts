@@ -1,85 +1,49 @@
-import express, { Request, Response, NextFunction } from 'express';
-import bodyParser from 'body-parser';
-import companion from '@uppy/companion';
-import session from 'express-session';
+import express, { RequestHandler } from 'express';
+import expressAuth from 'express-basic-auth';
 import * as fileCtrl from './fileController';
-require('dotenv').config();
+import multer from 'multer';
+import crypto from 'crypto';
+import path from 'path';
+import cors from 'cors';
 
 const app = express();
-app.use(bodyParser.json())
-app.use(session({
-  secret: 'some-secret',
-  resave: true,
-  saveUninitialized: true
-}))
+const port = 3300;
 
-app.use((req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*')
-  res.setHeader(
-    'Access-Control-Allow-Methods',
-    'GET, POST, OPTIONS, PUT, PATCH, DELETE'
-  )
-  res.setHeader(
-    'Access-Control-Allow-Headers',
-    'Authorization, Origin, Content-Type, Accept'
-  )
-  next()
-})
-
-// Routes
-app.get('/', (req, res) => {
-  res.setHeader('Content-Type', 'text/plain')
-  res.send('Welcome to Companion')
-})
-
-app.get('/api/download', asyncHandler(fileCtrl.download));
-
-export function asyncHandler(handler: any) {
-  return function (req: Request, res: Response, next: NextFunction) {
-    if (!handler) {
-      next(new Error(`Invalid handler ${handler}, it must be a function.`));
-    } else {
-      handler(req, res, next).catch(next);
-    }
-  };
+var corsOptions = {
+  origin: '*',
+  optionsSuccessStatus: 200,
 }
 
-// initialize uppy
-const uppyOptions = {
-  providerOptions: {
-    s3: {
-      getKey: (_req: Request, filename: string) => filename,
-      key: process.env.S3_ACCESS_KEY_ID,
-      secret: process.env.S3_SECRET_ACCESS_KEY,
-      bucket: process.env.S3_BUCKET_NAME,
-      region: "us-east-1",
-      useAccelerateEndpoint: false // default: false
-    }
-    // you can also add options for dropbox here
-  },
-  server: {
-    host: 'localhost:3300',
-    protocol: 'http'
-  },
-  filePath: './output',
-  secret: 'some-secret',
-  debug: true
+app.use(cors(corsOptions));
+// app.use(expressAuth({
+//   users: { 'admin': 'admin' },
+//   unauthorizedResponse: getUnauthorizedResponse,
+//   challenge: true
+// }));
+
+app.listen(port, () => {
+  console.log('Server listening on port %s.', port);
+});
+
+function getUnauthorizedResponse(req) {
+  return req.auth
+    ? ('Credentials ' + req.auth.user + ':' + req.auth.password + ' rejected')
+    : 'No credentials provided';
 }
 
-app.use(companion.app(uppyOptions))
+var storage = multer.diskStorage({
+  destination: './files',
+  filename: function (req, file, cb) {
+    crypto.pseudoRandomBytes(16, function (err, raw) {
+      if (err) return cb(err, file.fieldname);
 
-// handle 404
-app.use((req, res, next) => {
-  return res.status(404).json({ message: 'Not Found' })
+      cb(null, raw.toString('hex') + path.extname(file.originalname));
+    })
+  }
 })
 
-// handle server errors
-app.use((err, req, res, next) => {
-  console.error('\x1b[31m', err.stack, '\x1b[0m')
-  res.status(err.status || 500).json({ message: err.message, error: err })
-})
+app.use(multer({ storage: storage }).single('file'));
 
-companion.socket(app.listen(3300), uppyOptions)
 
-console.log('Welcome to Companion!')
-console.log(`Listening on http://0.0.0.0:${3300}`)
+app.get('/api/download', fileCtrl.download);
+app.post('/api/upload', fileCtrl.upload);
