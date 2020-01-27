@@ -26,6 +26,7 @@ export function uploadFile(filename: string, fileDirectoryPath: string) {
       }, function (err, data) {
         if (err) reject(err);
         console.log('success', filename, fileDirectoryPath);
+        fs.unlinkSync(fileDirectoryPath);
         resolve("succesfully uploaded");
       });
     });
